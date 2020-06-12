@@ -77,6 +77,26 @@ app.post(
     });
   },
 );
+app.put(
+  '/api/users/:id',
+  userValidationMiddlewares,
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    // send an SQL query to get all users
+    return connection.query('UPDATE user SET ? WHERE id = ?', [req.body, req.params.id], (err) => {
+      if (err) {
+        return res.status(500).json({
+          error: err.message,
+          sql: err.sql,
+        });
+      }
+      return res.status(200).json({ id: req.params.id, ...req.body });
+    });
+  },
+);
 
 app.listen(process.env.PORT, (err) => {
   if (err) {
